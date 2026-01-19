@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 import requests
 import uuid
@@ -9,117 +11,46 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CUSTOM CSS FOR FONTS ---
-st.markdown("""
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zalando+Sans+Expanded:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Recursive:wght@300..1000&display=swap" rel="stylesheet">
-
-<style>
-    /* 1. HEADERS & SUBTITLES (Zalando) */
-    h1, .subtitle {
-        font-family: "Zalando Sans Expanded", sans-serif !important;
-        text-align: center !important;
-    }
-    
-    .subtitle {
-        margin-bottom: 2rem !important;
-    }
-
-    /* 2. BUTTONS (Zalando) */
-    /* Target "Reset" button text */
-    div[data-testid="stButton"] button, 
-    div[data-testid="stButton"] button * {
-        font-family: "Zalando Sans Expanded", sans-serif !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Target "Launch" link button text */
-    div[data-testid="stLinkButton"] a, 
-    div[data-testid="stLinkButton"] a * {
-        font-family: "Zalando Sans Expanded", sans-serif !important;
-        font-weight: 600 !important;
-    }
-
-    /* 3. CHAT MESSAGES (Recursive) */
-    [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {
-        font-family: "Recursive", sans-serif !important;
-    }
-    [data-testid="stChatMessage"] {
-        font-family: "Recursive", sans-serif !important;
-    }
-
-    /* 4. ROBOT EMOJI FIX (Chat Avatar) */
-    /* This forces the assistant icon in the chat to use the default system font (colorful emoji) */
-    [data-testid="stChatAvatar"] {
-        font-family: sans-serif, "Segoe UI Emoji", "Apple Color Emoji" !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # --- SESSION STATE INITIALIZATION ---
+# This is crucial for maintaining the chat history and a unique session ID per user.
+# The session ID is sent to your backend to retrieve the correct Postgres chat memory.
+
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Initialize a unique session ID
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
 # --- BACKEND API DETAILS ---
+# Load secrets from the .streamlit/secrets.toml file
 try:
     API_URL = st.secrets["api"]["url"]
     API_KEY = st.secrets["api"]["key"]
 except KeyError:
-    API_URL = "http://localhost:8000" 
-    API_KEY = "test"
+    st.error("API URL/Key not found. Please add them to your Streamlit secrets.")
+    st.stop()
 
 # --- UI & LOGIC ---
+st.title("Optimized RAG AI Agent 🤖")
+st.write("I am an intelligent agent connected to your Google Calendar, Gmail, and other tools.")
 
-# 1. TITLE REPLACEMENT (The "Font Surgery")
-# We use HTML to wrap the robot emoji in a span that forces 'sans-serif'. 
-# This strips the 'Zalando' styling from the robot, revealing the nice system emoji.
-st.markdown(
-    """
-    <h1 style='text-align: center;'>
-        Bangalore ChatBot Prototype 
-        <span style='font-family: sans-serif, "Segoe UI Emoji", "Apple Color Emoji";'>🤖</span>
-    </h1>
-    """, 
-    unsafe_allow_html=True
-)
-
-# Subtitle
-st.markdown('<p class="subtitle">I am a Relai Expert real-estate AI Agent ready to help you find your ideal property.</p>', unsafe_allow_html=True)
-
-# --- LAYOUT: CENTERED BUTTONS ---
-col_spacer1, col_btn1, col_btn2, col_spacer2 = st.columns([1, 2, 2, 1])
-
-with col_btn1:
-    st.link_button(
-        "Launch 🚀", 
-        "https://api.whatsapp.com/send/?phone=917331112955&text=Hi&type=phone_number&app_absent=0",
-        use_container_width=True
-    )
-
-with col_btn2:
-    if st.button("Reset 🔄", use_container_width=True):
-        st.session_state.messages = []
-        st.session_state.session_id = str(uuid.uuid4())
-        st.rerun()
-
-# --- CHAT INTERFACE ---
-st.divider()
-
+# Display existing chat messages from history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# React to user input
 if prompt := st.chat_input("How can I help you today?"):
+    # 1. Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(prompt)
-
+    
+    # 2. Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
+    # 3. Call the backend API
     with st.spinner("Thinking..."):
         try:
             headers = {
@@ -130,17 +61,22 @@ if prompt := st.chat_input("How can I help you today?"):
                 "message": prompt,
                 "sessionId": st.session_state.session_id
             }
+            
+            response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
+            response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
 
-            response = requests.get(API_URL, headers=headers, json=payload, timeout=120)
-            response.raise_for_status()
-
+            # 4. Process the response
             backend_response = response.json()
             assistant_reply = backend_response.get("reply", "Sorry, I encountered an error.")
 
+            # 5. Display assistant response in chat message container
             with st.chat_message("assistant"):
                 st.markdown(assistant_reply)
-
+            
+            # 6. Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
         except requests.exceptions.RequestException as e:
-            st.error(f"Could not connect to the AI agent. Please try again later.")
+            st.error(f"Could not connect to the AI agent. Please try again later. Error: {e}")
+            # Optionally remove the user's last message to allow them to retry
+            st.session_state.messages.pop()
