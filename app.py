@@ -71,9 +71,7 @@ except KeyError:
 # 1. TITLE REPLACEMENT (The "Font Surgery")
 st.markdown(
     """
-    <h1 style='text-align: center;'>
-        Bengaluru ChatBot Prototype
-    </h1>
+    <h1 style='text-align: center;'>Bengaluru ChatBot Prototype</h1>
     """, 
     unsafe_allow_html=True
 )
