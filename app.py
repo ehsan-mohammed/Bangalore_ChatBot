@@ -33,7 +33,7 @@ except KeyError:
     st.stop()
 
 # --- UI & LOGIC ---
-st.title("Optimized RAG AI Agent 🤖")
+st.title("Bangalore Prototype 🤖")
 st.write("I am an intelligent agent connected to your Google Calendar, Gmail, and other tools.")
 
 # Display existing chat messages from history
