@@ -4,7 +4,7 @@ import uuid
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Bangalore Prototype",
+    page_title="Bengaluru Prototype",
     page_icon="🤖",
     layout="centered"
 )
@@ -72,7 +72,7 @@ except KeyError:
 st.markdown(
     """
     <h1 style='text-align: center;'>
-        Bangalore ChatBot Prototype 
+        Bengaluru ChatBot Prototype 
         <span style='font-family: sans-serif, "Segoe UI Emoji", "Apple Color Emoji";'>🤖</span>
     </h1>
     """, 
