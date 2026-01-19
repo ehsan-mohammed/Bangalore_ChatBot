@@ -34,7 +34,7 @@ except KeyError:
 
 # --- UI & LOGIC ---
 st.title("Bangalore Prototype 🤖")
-st.write("I am an intelligent agent connected to your Google Calendar, Gmail, and other tools.")
+# st.write("I am an intelligent agent connected to your Google Calendar, Gmail, and other tools.")
 
 # Display existing chat messages from history
 for message in st.session_state.messages:
