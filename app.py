@@ -34,13 +34,6 @@ st.markdown("""
         font-family: "Zalando Sans Expanded", sans-serif !important;
         font-weight: 600 !important;
     }
-    
-    /* Target "Launch" link button text */
-    div[data-testid="stLinkButton"] a, 
-    div[data-testid="stLinkButton"] a * {
-        font-family: "Zalando Sans Expanded", sans-serif !important;
-        font-weight: 600 !important;
-    }
 
     /* 3. CHAT MESSAGES (Recursive) */
     [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {
@@ -76,8 +69,6 @@ except KeyError:
 # --- UI & LOGIC ---
 
 # 1. TITLE REPLACEMENT (The "Font Surgery")
-# We use HTML to wrap the robot emoji in a span that forces 'sans-serif'. 
-# This strips the 'Zalando' styling from the robot, revealing the nice system emoji.
 st.markdown(
     """
     <h1 style='text-align: center;'>
@@ -91,17 +82,12 @@ st.markdown(
 # Subtitle
 st.markdown('<p class="subtitle">I am a Relai Expert real-estate AI Agent ready to help you find your ideal property.</p>', unsafe_allow_html=True)
 
-# --- LAYOUT: CENTERED BUTTONS ---
-col_spacer1, col_btn1, col_btn2, col_spacer2 = st.columns([1, 2, 2, 1])
+# --- LAYOUT: CENTERED RESET BUTTON ---
+# To center a single button in Streamlit, we use three columns: 
+# [Spacer, Button, Spacer]. 
+left_spacer, center_btn, right_spacer = st.columns([3, 2, 3])
 
-with col_btn1:
-    st.link_button(
-        "Launch 🚀", 
-        "https://api.whatsapp.com/send/?phone=917331112955&text=Hi&type=phone_number&app_absent=0",
-        use_container_width=True
-    )
-
-with col_btn2:
+with center_btn:
     if st.button("Reset 🔄", use_container_width=True):
         st.session_state.messages = []
         st.session_state.session_id = str(uuid.uuid4())
