@@ -72,8 +72,7 @@ except KeyError:
 st.markdown(
     """
     <h1 style='text-align: center;'>
-        Bengaluru ChatBot Prototype 
-        <span style='font-family: sans-serif, "Segoe UI Emoji", "Apple Color Emoji";'>🤖</span>
+        Bengaluru ChatBot Prototype
     </h1>
     """, 
     unsafe_allow_html=True
